@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="StringUtils.cpp" />
+    <ClCompile Include="HostFunc.cpp" />
+    <ClCompile Include="GPULightmassKernel.cpp" />
+    <ClCompile Include="HDRWriter.cpp" />
+    <ClCompile Include="Radiosity.cpp" />
+    <ClCompile Include="ProgressReport.cpp" />
+    <ClCompile Include="BVH\EmbreeBVHBuilder.cpp">
+      <Filter>BVH</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="linear_math.h" />
+    <ClInclude Include="StringUtils.h" />
+    <ClInclude Include="rt\rtDebugFunc.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="rt\rtHelperFunc.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="rt\rtHostConfig.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="rt\rtKernelDefs.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="rt\rtTraceFunc.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="rt\rtWarpAggregation.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="HostFunc.h" />
+    <ClInclude Include="GPULightmassKernel.h" />
+    <ClInclude Include="rt\rtRayBufferKernel.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="Radiosity.h" />
+    <ClInclude Include="rt\rtRadiosity.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="rt\rtTraceDynamicFetch.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="rt\rtSurfelSorting.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgressReport.h" />
+    <ClInclude Include="rt\rtVolumetric.h">
+      <Filter>rt</Filter>
+    </ClInclude>
+    <ClInclude Include="BVH\EmbreeBVHBuilder.h">
+      <Filter>BVH</Filter>
+    </ClInclude>
+    <ClInclude Include="sh_warpreduction.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="BVH">
+      <UniqueIdentifier>{92695df6-fad2-426e-a327-3be6d7cb22a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="rt">
+      <UniqueIdentifier>{dbe67518-45a9-473b-89df-259926a4575e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="rt\rtKernel.cu">
+      <Filter>rt</Filter>
+    </CudaCompile>
+  </ItemGroup>
+</Project>

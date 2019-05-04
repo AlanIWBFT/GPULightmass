@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{E52E3B2D-8C5E-42AB-895C-68411444C966}</ProjectGuid>
+    <RootNamespace>GPULightmassKernel</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.1.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <CustomBuildAfterTargets>BuildLink</CustomBuildAfterTargets>
+    <OutDir>$(SolutionDir)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>TASKING_TBB;WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <OpenMPSupport>true</OpenMPSupport>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>.\;D:\embree\include;F:\tbb2018_20170919oss\include;%(AdditionalIncludeDirectories);$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>tbb.lib;cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\embree\build\Release;F:\tbb2018_20170919oss\lib\intel64\vc14;%(AdditionalLibraryDirectories);$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>mkdir ..\..\EngineIntegration\Engine\Source\ThirdParty\GPULightmass\Win64\include\
+mkdir ..\..\EngineIntegration\Engine\Source\ThirdParty\GPULightmass\Win64\lib\
+copy /Y "$(ProjectDir)GPULightmassKernel.h" "..\..\EngineIntegration\Engine\Source\ThirdParty\GPULightmass\Win64\include\GPULightmassKernel.h"
+copy /Y "$(TargetDir)$(ProjectName).lib" "..\..\EngineIntegration\Engine\Source\ThirdParty\GPULightmass\Win64\lib\$(ProjectName).lib"
+copy /Y "$(TargetDir)$(ProjectName).dll" "..\..\EngineIntegration\Engine\Source\ThirdParty\GPULightmass\Win64\lib\$(ProjectName).dll"
+copy /Y "$(TargetDir)$(ProjectName).dll" "..\..\EngineIntegration\Engine\Binaries\Win64\$(ProjectName).dll"</Command>
+    </PostBuildEvent>
+    <CudaCompile>
+      <PtxAsOptionV>true</PtxAsOptionV>
+      <AdditionalCompilerOptions>/wd4819 /wd4267 /wd4996</AdditionalCompilerOptions>
+      <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+      <GenerateLineInfo>true</GenerateLineInfo>
+    </CudaCompile>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CudaCompile Include="rt\rtKernel.cu">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BVH\EmbreeBVHBuilder.cpp" />
+    <ClCompile Include="GPULightmassKernel.cpp" />
+    <ClCompile Include="HDRWriter.cpp" />
+    <ClCompile Include="HostFunc.cpp" />
+    <ClCompile Include="ProgressReport.cpp" />
+    <ClCompile Include="Radiosity.cpp" />
+    <ClCompile Include="StringUtils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BVH\EmbreeBVHBuilder.h" />
+    <ClInclude Include="GPULightmassKernel.h" />
+    <ClInclude Include="HostFunc.h" />
+    <ClInclude Include="linear_math.h" />
+    <ClInclude Include="ProgressReport.h" />
+    <ClInclude Include="Radiosity.h" />
+    <ClInclude Include="rt\rtDebugFunc.h" />
+    <ClInclude Include="rt\rtHelperFunc.h" />
+    <ClInclude Include="rt\rtHostConfig.h" />
+    <ClInclude Include="rt\rtKernelDefs.h" />
+    <ClInclude Include="rt\rtRadiosity.h" />
+    <ClInclude Include="rt\rtRayBufferKernel.h" />
+    <ClInclude Include="rt\rtSurfelSorting.h" />
+    <ClInclude Include="rt\rtTraceDynamicFetch.h" />
+    <ClInclude Include="rt\rtTraceFunc.h" />
+    <ClInclude Include="rt\rtVolumetric.h" />
+    <ClInclude Include="rt\rtWarpAggregation.h" />
+    <ClInclude Include="sh_warpreduction.h" />
+    <ClInclude Include="StringUtils.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.1.targets" />
+  </ImportGroup>
+</Project>
