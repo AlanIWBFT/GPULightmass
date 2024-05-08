@@ -36,24 +36,24 @@ const bool FORCE_SHADOWRAYS = false;
 
 const int TaskBufferSize = 2048 * 2048;
 
-texture<float4, 1, cudaReadModeElementType> BVHTreeNodesTexture;
-texture<float4, 1, cudaReadModeElementType> TriangleWoopCoordinatesTexture;
-texture<int, 1, cudaReadModeElementType> MappingFromTriangleAddressToIndexTexture;
+__device__ cudaTextureObject_t BVHTreeNodesTexture; // float4
+__device__ cudaTextureObject_t TriangleWoopCoordinatesTexture; // float4
+__device__ cudaTextureObject_t MappingFromTriangleAddressToIndexTexture; // int
 
-__constant__ float4* BVHTreeNodes;
-__constant__ float4* TriangleWoopCoordinates;
-__constant__ int* MappingFromTriangleAddressToIndex;
+__device__ float4* BVHTreeNodes; // float4
+__device__ float4* TriangleWoopCoordinates; // float4
+__device__ int* MappingFromTriangleAddressToIndex; // int
 
-texture<float4, 1, cudaReadModeElementType> SampleWorldPositionsTexture;
-texture<float4, 1, cudaReadModeElementType> SampleWorldNormalsTexture;
-texture<float, 1, cudaReadModeElementType> TexelRadiusTexture;
+__device__ cudaTextureObject_t SampleWorldPositionsTexture; // float4
+__device__ cudaTextureObject_t SampleWorldNormalsTexture; // float4
+__device__ cudaTextureObject_t TexelRadiusTexture; // float
 
-texture<float4, 1, cudaReadModeElementType> SkyLightUpperHemisphereTexture;
-texture<float4, 1, cudaReadModeElementType> SkyLightLowerHemisphereTexture;
-texture<int, 1, cudaReadModeElementType> SkyLightUpperHemisphereImportantDirectionsTexture;
-texture<int, 1, cudaReadModeElementType> SkyLightLowerHemisphereImportantDirectionsTexture;
-texture<float4, 1, cudaReadModeElementType> SkyLightUpperHemisphereImportantColorTexture;
-texture<float4, 1, cudaReadModeElementType> SkyLightLowerHemisphereImportantColorTexture;
+__device__ cudaTextureObject_t SkyLightUpperHemisphereTexture; // float4
+__device__ cudaTextureObject_t SkyLightLowerHemisphereTexture; // float4
+__device__ cudaTextureObject_t SkyLightUpperHemisphereImportantDirectionsTexture; // int
+__device__ cudaTextureObject_t SkyLightLowerHemisphereImportantDirectionsTexture; // int
+__device__ cudaTextureObject_t SkyLightUpperHemisphereImportantColorTexture; // float4
+__device__ cudaTextureObject_t SkyLightLowerHemisphereImportantColorTexture; // float4
 
 __device__ int SkyLightCubemapNumThetaSteps;
 __device__ int SkyLightCubemapNumPhiSteps;

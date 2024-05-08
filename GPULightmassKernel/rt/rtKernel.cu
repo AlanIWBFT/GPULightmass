@@ -16,7 +16,7 @@ __device__ float3 SampleSkyLightRadiance(float3 RayInWorldSpace)
 		float Phi = acosf(RayInWorldSpace.x / R);
 		if (RayInWorldSpace.y < 0) Phi = 2.0f * 3.1415926f - Phi;
 		int PhiIndex = Phi / (2.0f * 3.1415926f) * SkyLightCubemapNumPhiSteps;
-		return make_float3(tex1Dfetch(SkyLightUpperHemisphereTexture, ThetaIndex * SkyLightCubemapNumPhiSteps + PhiIndex));
+		return make_float3(tex1Dfetch<float4>(SkyLightUpperHemisphereTexture, ThetaIndex * SkyLightCubemapNumPhiSteps + PhiIndex));
 	}
 	else
 	{
@@ -26,7 +26,7 @@ __device__ float3 SampleSkyLightRadiance(float3 RayInWorldSpace)
 		float Phi = acosf(RayInWorldSpace.x / R);
 		if (RayInWorldSpace.y < 0) Phi = 2.0f * 3.1415926f - Phi;
 		int PhiIndex = Phi / (2.0f * 3.1415926f) * SkyLightCubemapNumPhiSteps;
-		return make_float3(tex1Dfetch(SkyLightLowerHemisphereTexture, ThetaIndex * SkyLightCubemapNumPhiSteps + PhiIndex));
+		return make_float3(tex1Dfetch<float4>(SkyLightLowerHemisphereTexture, ThetaIndex * SkyLightCubemapNumPhiSteps + PhiIndex));
 	}
 }
 

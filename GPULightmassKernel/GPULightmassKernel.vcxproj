@@ -9,7 +9,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E52E3B2D-8C5E-42AB-895C-68411444C966}</ProjectGuid>
     <RootNamespace>GPULightmassKernel</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -17,11 +17,11 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.1.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.4.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -49,7 +49,7 @@
       <PreprocessorDefinitions>TASKING_TBB;WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <OpenMPSupport>true</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>.\;D:\embree\include;F:\tbb2018_20170919oss\include;%(AdditionalIncludeDirectories);$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;D:\embree\include;C:\Program Files (x86)\Intel\oneAPI\tbb\2021.12\include;%(AdditionalIncludeDirectories);$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -57,22 +57,19 @@
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Console</SubSystem>
       <AdditionalDependencies>tbb.lib;cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\embree\build\Release;F:\tbb2018_20170919oss\lib\intel64\vc14;%(AdditionalLibraryDirectories);$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\embree\Release;C:\Program Files (x86)\Intel\oneAPI\tbb\2021.12\lib;%(AdditionalLibraryDirectories);$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir ..\..\EngineIntegration\Engine\Source\ThirdParty\GPULightmass\Win64\include\
-mkdir ..\..\EngineIntegration\Engine\Source\ThirdParty\GPULightmass\Win64\lib\
-copy /Y "$(ProjectDir)GPULightmassKernel.h" "..\..\EngineIntegration\Engine\Source\ThirdParty\GPULightmass\Win64\include\GPULightmassKernel.h"
-copy /Y "$(TargetDir)$(ProjectName).lib" "..\..\EngineIntegration\Engine\Source\ThirdParty\GPULightmass\Win64\lib\$(ProjectName).lib"
-copy /Y "$(TargetDir)$(ProjectName).dll" "..\..\EngineIntegration\Engine\Source\ThirdParty\GPULightmass\Win64\lib\$(ProjectName).dll"
-copy /Y "$(TargetDir)$(ProjectName).dll" "..\..\EngineIntegration\Engine\Binaries\Win64\$(ProjectName).dll"</Command>
+      <Command>mkdir D:\UE5\Engine\Source\ThirdParty\GPULightmass\Win64\include\
+mkdir D:\UE5\Engine\Source\ThirdParty\GPULightmass\Win64\lib\
+copy /Y "$(ProjectDir)GPULightmassKernel.h" "D:\UE5\Engine\Source\ThirdParty\GPULightmass\Win64\include\GPULightmassKernel.h"
+copy /Y "$(TargetDir)$(ProjectName).lib" "D:\UE5\Engine\Source\ThirdParty\GPULightmass\Win64\lib\$(ProjectName).lib"
+copy /Y "$(TargetDir)$(ProjectName).dll" "D:\UE5\Engine\Source\ThirdParty\GPULightmass\Win64\lib\$(ProjectName).dll"
+copy /Y "$(TargetDir)$(ProjectName).dll" "D:\UE5\Engine\Binaries\Win64\$(ProjectName).dll"</Command>
     </PostBuildEvent>
     <CudaCompile>
-      <PtxAsOptionV>true</PtxAsOptionV>
       <AdditionalCompilerOptions>/wd4819 /wd4267 /wd4996</AdditionalCompilerOptions>
-      <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <GenerateLineInfo>true</GenerateLineInfo>
     </CudaCompile>
     <CustomBuildStep>
       <Command>
@@ -116,6 +113,6 @@ copy /Y "$(TargetDir)$(ProjectName).dll" "..\..\EngineIntegration\Engine\Binarie
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.1.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.4.targets" />
   </ImportGroup>
 </Project>

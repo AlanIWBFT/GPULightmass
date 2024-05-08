@@ -10,17 +10,33 @@ __host__ void rtBindBVHData(
 		BVHSize * sizeof(float4) / 1024.0f / 1024.0f,
 		(TriangleWoopSize * sizeof(float4) + TriangleIndicesSize * sizeof(int)) / 1024.0f / 1024.0f
 	);
-
-	cudaCheck(cudaMemcpyToSymbol(MappingFromTriangleAddressToIndex, &InMappingFromTriangleAddressToIndex, 1 * sizeof(InMappingFromTriangleAddressToIndex)));
-	cudaCheck(cudaMemcpyToSymbol(TriangleWoopCoordinates, &InTriangleWoopCoordinates, 1 * sizeof(InTriangleWoopCoordinates)));
-	cudaCheck(cudaMemcpyToSymbol(BVHTreeNodes, &InBVHTreeNodes, 1 * sizeof(InBVHTreeNodes)));
-
+	
 	cudaChannelFormatDesc channelDescFloat4 = cudaCreateChannelDesc<float4>();
-	cudaCheck(cudaBindTexture(NULL, &BVHTreeNodesTexture, InBVHTreeNodes, &channelDescFloat4, BVHSize * sizeof(float4)));
-	cudaCheck(cudaBindTexture(NULL, &TriangleWoopCoordinatesTexture, InTriangleWoopCoordinates, &channelDescFloat4, TriangleWoopSize * sizeof(float4)));
 
-	cudaChannelFormatDesc channelDescInt = cudaCreateChannelDesc<int>();
-	cudaCheck(cudaBindTexture(NULL, &MappingFromTriangleAddressToIndexTexture, InMappingFromTriangleAddressToIndex, &channelDescInt, TriangleIndicesSize * sizeof(int)));
+	cudaResourceDesc resDesc = {};
+	resDesc.resType = cudaResourceTypeLinear;
+	resDesc.res.linear.desc = channelDescFloat4;
+	cudaTextureDesc texDesc = {};
+	cudaTextureObject_t TexObject = {};
+
+	resDesc.res.linear.devPtr = (void*)InBVHTreeNodes;
+	resDesc.res.linear.sizeInBytes = BVHSize * sizeof(float4);
+	cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
+	cudaCheck(cudaMemcpyToSymbol(BVHTreeNodesTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
+	cudaCheck(cudaMemcpyToSymbol(BVHTreeNodes, &InBVHTreeNodes, 1 * sizeof(float4*)));
+
+	resDesc.res.linear.devPtr = (void*)InTriangleWoopCoordinates;
+	resDesc.res.linear.sizeInBytes = TriangleWoopSize * sizeof(float4);
+	cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
+	cudaCheck(cudaMemcpyToSymbol(TriangleWoopCoordinatesTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
+	cudaCheck(cudaMemcpyToSymbol(TriangleWoopCoordinates, &InTriangleWoopCoordinates, 1 * sizeof(float4*)));
+
+	resDesc.res.linear.desc = cudaCreateChannelDesc<int>();
+	resDesc.res.linear.devPtr = (void*)InMappingFromTriangleAddressToIndex;
+	resDesc.res.linear.sizeInBytes = TriangleIndicesSize * sizeof(int);
+	cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
+	cudaCheck(cudaMemcpyToSymbol(MappingFromTriangleAddressToIndexTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
+	cudaCheck(cudaMemcpyToSymbol(MappingFromTriangleAddressToIndex, &InMappingFromTriangleAddressToIndex, 1 * sizeof(int*)));
 }
 
 __host__ void rtBindSampleData(
@@ -32,11 +48,28 @@ __host__ void rtBindSampleData(
 	const int InSizeY)
 {
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
-	cudaCheck(cudaBindTexture(NULL, &SampleWorldPositionsTexture, SampleWorldPositions, &channelDesc, InSizeX * InSizeY * sizeof(float4)));
-	cudaCheck(cudaBindTexture(NULL, &SampleWorldNormalsTexture, SampleWorldNormals, &channelDesc, InSizeX * InSizeY * sizeof(float4)));
 
-	cudaChannelFormatDesc channelDescFloat = cudaCreateChannelDesc<float>();
-	cudaCheck(cudaBindTexture(NULL, &TexelRadiusTexture, TexelRadius, &channelDescFloat, InSizeX * InSizeY * sizeof(float)));
+	cudaResourceDesc resDesc = {};
+	resDesc.resType = cudaResourceTypeLinear;
+	resDesc.res.linear.desc = channelDesc;
+	cudaTextureDesc texDesc = {};
+	cudaTextureObject_t TexObject = {};
+
+	resDesc.res.linear.devPtr = (void*)SampleWorldPositions;
+	resDesc.res.linear.sizeInBytes = InSizeX * InSizeY * sizeof(float4);
+	cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
+	cudaCheck(cudaMemcpyToSymbol(SampleWorldPositionsTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
+
+	resDesc.res.linear.devPtr = (void*)SampleWorldNormals;
+	resDesc.res.linear.sizeInBytes = InSizeX * InSizeY * sizeof(float4);
+	cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
+	cudaCheck(cudaMemcpyToSymbol(SampleWorldNormalsTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
+
+	resDesc.res.linear.devPtr = (void*)TexelRadius;
+	resDesc.res.linear.sizeInBytes = InSizeX * InSizeY * sizeof(float);
+	resDesc.res.linear.desc = cudaCreateChannelDesc<float>();
+	cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
+	cudaCheck(cudaMemcpyToSymbol(TexelRadiusTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
 
 	cudaCheck(cudaMemcpyToSymbol(OutLightmapData, &InOutLightmapData, 1 * sizeof(GPULightmass::GatheredLightSample*)));
 	cudaCheck(cudaMemcpyToSymbol(BindedSizeX, &InSizeX, 1 * sizeof(int)));
@@ -85,16 +118,50 @@ __host__ void rtBindSkyCubemapData(
 {
 	{
 		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
-		cudaCheck(cudaBindTexture(NULL, &SkyLightUpperHemisphereTexture, UpperHemisphereCubemap, &channelDesc, NumThetaSteps * NumPhiSteps * sizeof(float4)));
-		cudaCheck(cudaBindTexture(NULL, &SkyLightLowerHemisphereTexture, LowerHemisphereCubemap, &channelDesc, NumThetaSteps * NumPhiSteps * sizeof(float4)));
-		cudaCheck(cudaBindTexture(NULL, &SkyLightUpperHemisphereImportantColorTexture, InUpperHemisphereImportantColor, &channelDesc, 16 * sizeof(float4)));
-		cudaCheck(cudaBindTexture(NULL, &SkyLightLowerHemisphereImportantColorTexture, InLowerHemisphereImportantColor, &channelDesc, 16 * sizeof(float4)));
+		cudaResourceDesc resDesc = {};
+		resDesc.resType = cudaResourceTypeLinear;
+		resDesc.res.linear.desc = channelDesc;
+		cudaTextureDesc texDesc = {};
+		cudaTextureObject_t TexObject = {};
+
+		resDesc.res.linear.devPtr = (void*)UpperHemisphereCubemap;
+		resDesc.res.linear.sizeInBytes = NumThetaSteps * NumPhiSteps * sizeof(float4);
+		cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
+		cudaCheck(cudaMemcpyToSymbol(SkyLightUpperHemisphereTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
+
+		resDesc.res.linear.devPtr = (void*)LowerHemisphereCubemap;
+		resDesc.res.linear.sizeInBytes = NumThetaSteps * NumPhiSteps * sizeof(float4);
+		cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
+		cudaCheck(cudaMemcpyToSymbol(SkyLightLowerHemisphereTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
+
+		resDesc.res.linear.devPtr = (void*)InUpperHemisphereImportantColor;
+		resDesc.res.linear.sizeInBytes = 16 * sizeof(float4);
+		cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
+		cudaCheck(cudaMemcpyToSymbol(SkyLightUpperHemisphereImportantColorTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
+
+		resDesc.res.linear.devPtr = (void*)InLowerHemisphereImportantColor;
+		resDesc.res.linear.sizeInBytes = 16 * sizeof(float4);
+		cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
+		cudaCheck(cudaMemcpyToSymbol(SkyLightLowerHemisphereImportantColorTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
 	}
 
 	{
 		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<int>();
-		cudaCheck(cudaBindTexture(NULL, &SkyLightUpperHemisphereImportantDirectionsTexture, UpperHemisphereImportantDirections, &channelDesc, 16 * sizeof(int)));
-		cudaCheck(cudaBindTexture(NULL, &SkyLightLowerHemisphereImportantDirectionsTexture, LowerHemisphereImportantDirections, &channelDesc, 16 * sizeof(int)));
+		cudaResourceDesc resDesc = {};
+		resDesc.resType = cudaResourceTypeLinear;
+		resDesc.res.linear.desc = channelDesc;
+		cudaTextureDesc texDesc = {};
+		cudaTextureObject_t TexObject = {};
+
+		resDesc.res.linear.devPtr = (void*)UpperHemisphereImportantDirections;
+		resDesc.res.linear.sizeInBytes = 16 * sizeof(int);
+		cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
+		cudaCheck(cudaMemcpyToSymbol(SkyLightUpperHemisphereImportantDirectionsTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
+
+		resDesc.res.linear.devPtr = (void*)LowerHemisphereImportantDirections;
+		resDesc.res.linear.sizeInBytes = 16 * sizeof(int);
+		cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
+		cudaCheck(cudaMemcpyToSymbol(SkyLightLowerHemisphereImportantDirectionsTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
 	}
 
 	cudaCheck(cudaMemcpyToSymbol(SkyLightCubemapNumThetaSteps, &NumThetaSteps, 1 * sizeof(int)));

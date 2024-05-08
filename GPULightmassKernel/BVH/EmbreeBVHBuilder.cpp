@@ -12,7 +12,7 @@
 #pragma comment(lib, "embree_avx.lib")
 #pragma comment(lib, "embree_avx2.lib")
 #pragma comment(lib, "embree_sse42.lib")
-#pragma comment(lib, "embree3.lib")
+#pragma comment(lib, "embree4.lib")
 #pragma comment(lib, "lexers.lib")
 #pragma comment(lib, "math.lib")
 #pragma comment(lib, "simd.lib")
@@ -23,7 +23,7 @@
 template <int N>
 void* CreateNode(RTCThreadLocalAllocator allocator, unsigned int childCount, void* userPtr)
 {
-	BVHNNode<N>* newNode = new (rtcThreadLocalAlloc(allocator, sizeof(BVHNNode<N>), sizeof(BVHNNode<N>))) BVHNNode<N>;
+	BVHNNode<N>* newNode = new (rtcThreadLocalAlloc(allocator, sizeof(BVHNNode<N>), 16)) BVHNNode<N>;
 	return newNode;
 }
 
@@ -59,7 +59,7 @@ template <int N>
 void* CreateLeaf(RTCThreadLocalAllocator allocator, const struct RTCBuildPrimitive* primitives, size_t primitiveCount, void* userPtr)
 {
 	assert(primitiveCount > 0);
-	BVHNNode<N>* newNode = new (rtcThreadLocalAlloc(allocator, sizeof(BVHNNode<N>), sizeof(BVHNNode<N>))) BVHNNode<N>;
+	BVHNNode<N>* newNode = new (rtcThreadLocalAlloc(allocator, sizeof(BVHNNode<N>), 16)) BVHNNode<N>;
 	newNode->LeafPrimitiveRefs = new (rtcThreadLocalAlloc(allocator, sizeof(int) * primitiveCount, sizeof(int))) int[primitiveCount]();
 	for (int i = 0; i < primitiveCount; i++)
 		newNode->LeafPrimitiveRefs[i] = primitives[i].primID;

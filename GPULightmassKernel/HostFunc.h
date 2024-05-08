@@ -2,6 +2,7 @@
 #include <cuda_runtime.h>
 #include <vector>
 #include <memory>
+#include <string>
 #include "linear_math.h"
 
 void BindBVHData(

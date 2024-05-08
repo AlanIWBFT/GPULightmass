@@ -52,7 +52,7 @@ __device__ void rtTrace(
 	float   idirx, idiry, idirz;    // 1 / ray direction
 	float   oodx, oody, oodz;       // ray origin / ray direction
 
-	char*   stackPtr;               // Current position in traversal stack.
+	int     stackPtr;               // Current position in traversal stack.
 	int     leafAddr;               // If negative, then first postponed leaf, non-negative if no leaf (innernode).
 	int     nodeAddr;
 	int     hitAddr;               // Triangle index of the closest intersection, -1 if none.
@@ -79,7 +79,7 @@ __device__ void rtTrace(
 							   // Setup traversal + initialisation
 
 		traversalStack[0] = EntrypointSentinel; // Bottom-most entry. 0x76543210 (1985229328 in decimal)
-		stackPtr = (char*)&traversalStack[0]; // point stackPtr to bottom of traversal stack = EntryPointSentinel
+		stackPtr = 0; // point stackPtr to bottom of traversal stack = EntryPointSentinel
 		leafAddr = 0;   // No postponed leaf.
 		nodeAddr = 0;   // Start from the root.
 		hitAddr = -1;  // No triangle intersected so far.
@@ -96,10 +96,10 @@ __device__ void rtTrace(
 		{
 			// Fetch AABBs of the two child nodes.
 
-			const float4 n0xy = tex1Dfetch(BVHTreeNodesTexture, nodeAddr + 0); // (c0.lo.x, c0.hi.x, c0.lo.y, c0.hi.y)
-			const float4 n1xy = tex1Dfetch(BVHTreeNodesTexture, nodeAddr + 1); // (c1.lo.x, c1.hi.x, c1.lo.y, c1.hi.y)
-			const float4 nz = tex1Dfetch(BVHTreeNodesTexture, nodeAddr + 2); // (c0.lo.z, c0.hi.z, c1.lo.z, c1.hi.z)
-			float4 tmp = tex1Dfetch(BVHTreeNodesTexture, nodeAddr + 3); // child_index0, child_index1
+			const float4 n0xy = tex1Dfetch<float4>(BVHTreeNodesTexture, nodeAddr + 0); // (c0.lo.x, c0.hi.x, c0.lo.y, c0.hi.y)
+			const float4 n1xy = tex1Dfetch<float4>(BVHTreeNodesTexture, nodeAddr + 1); // (c1.lo.x, c1.hi.x, c1.lo.y, c1.hi.y)
+			const float4 nz = tex1Dfetch<float4>(BVHTreeNodesTexture, nodeAddr + 2); // (c0.lo.z, c0.hi.z, c1.lo.z, c1.hi.z)
+			float4 tmp = tex1Dfetch<float4>(BVHTreeNodesTexture, nodeAddr + 3); // child_index0, child_index1
 			int2  cnodes = *(int2*)&tmp;
 
 			// Intersect the ray against the child nodes.
@@ -130,8 +130,7 @@ __device__ void rtTrace(
 
 			if (!traverseChild0 && !traverseChild1)
 			{
-				nodeAddr = *(int*)stackPtr;
-				stackPtr -= 4;
+				nodeAddr = traversalStack[stackPtr--];
 			}
 
 			// Otherwise => fetch child pointers.
@@ -146,8 +145,7 @@ __device__ void rtTrace(
 				{
 					if (swp)
 						swap(nodeAddr, cnodes.y);
-					stackPtr += 4;
-					*(int*)stackPtr = cnodes.y;
+					traversalStack[++stackPtr] = cnodes.y;
 				}
 			}
 
@@ -158,37 +156,21 @@ __device__ void rtTrace(
 			{
 				//leafAddr2= leafAddr;          // postpone 2
 				leafAddr = nodeAddr;
-				nodeAddr = *(int*)stackPtr;
-				stackPtr -= 4;
+				nodeAddr = traversalStack[stackPtr--];
 			}
 
 			// All SIMD lanes have found a leaf? => process them.
-
-			// NOTE: inline PTX implementation of "if(!__any(leafAddr >= 0)) break;".
-			// tried everything with CUDA 4.2 but always got several redundant instructions.
-
-			unsigned int mask;
-			asm("{\n"
-				"   .reg .pred p;               \n"
-				"setp.ge.s32        p, %1, 0;   \n"
-				"vote.ballot.b32    %0,p;       \n"
-				"}"
-				: "=r"(mask)
-				: "r"(leafAddr));
-			if (!mask)
-				break;
-
-			//if(!__any(leafAddr >= 0))
-			//    break;
+			if(!__any_sync(__activemask(), leafAddr >= 0))
+			    break;
 		}
 
 		while (leafAddr < 0)
 		{
 			for (int triAddr = ~leafAddr;; triAddr += 3)
 			{
-				float4 v00 = tex1Dfetch(TriangleWoopCoordinatesTexture, triAddr);
-				float4 v11 = tex1Dfetch(TriangleWoopCoordinatesTexture, triAddr + 1);
-				float4 v22 = tex1Dfetch(TriangleWoopCoordinatesTexture, triAddr + 2);
+				float4 v00 = tex1Dfetch<float4>(TriangleWoopCoordinatesTexture, triAddr);
+				float4 v11 = tex1Dfetch<float4>(TriangleWoopCoordinatesTexture, triAddr + 1);
+				float4 v22 = tex1Dfetch<float4>(TriangleWoopCoordinatesTexture, triAddr + 2);
 
 				if (__float_as_int(v00.x) == 0x80000000)
 					break;
@@ -211,8 +193,8 @@ __device__ void rtTrace(
 
 						if (v >= 0.0f && u + v <= 1.0f)
 						{
-							int triangleIndex = tex1Dfetch(MappingFromTriangleAddressToIndexTexture, triAddr);
-							int materialIndex = tex1Dfetch(MappingFromTriangleAddressToIndexTexture, triAddr + 1);
+							int triangleIndex = tex1Dfetch<int>(MappingFromTriangleAddressToIndexTexture, triAddr);
+							int materialIndex = tex1Dfetch<int>(MappingFromTriangleAddressToIndexTexture, triAddr + 1);
 							bool isHitRejected = false;
 
 							if (materialIndex >= 0)
@@ -254,8 +236,7 @@ __device__ void rtTrace(
 			leafAddr = nodeAddr;
 			if (nodeAddr < 0)
 			{
-				nodeAddr = *(int*)stackPtr;
-				stackPtr -= 4;
+				nodeAddr = traversalStack[stackPtr--];
 			}
 		}
 
@@ -264,6 +245,6 @@ __device__ void rtTrace(
 			break;
 	}
 
-	OutHitInfo.TriangleIndex = hitAddr != -1 ? tex1Dfetch(MappingFromTriangleAddressToIndexTexture, hitAddr) : -1;
+	OutHitInfo.TriangleIndex = hitAddr != -1 ? tex1Dfetch<int>(MappingFromTriangleAddressToIndexTexture, hitAddr) : -1;
 	OutHitInfo.HitDistance = hitT;
 }

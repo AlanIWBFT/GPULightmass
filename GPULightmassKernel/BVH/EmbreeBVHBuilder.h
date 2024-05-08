@@ -1,7 +1,6 @@
 #pragma once
 
-#include <embree3/rtcore.h>
-#include <embree3/rtcore_builder.h>
+#include <embree4/rtcore.h>
 #include <vector>
 
 template <int N>

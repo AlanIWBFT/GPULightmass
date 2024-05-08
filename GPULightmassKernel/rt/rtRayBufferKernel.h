@@ -61,9 +61,9 @@ __global__ void BucketRayGenKernel(
 	const int sampleIndexTheta = targetRayThetaInBucket + targetBucketTheta * GPUSamplingParameters.NumSamplePerBucketTheta;
 	const int sampleIndexPhi = targetRayPhiInBucket + targetBucketPhi * GPUSamplingParameters.NumSamplePerBucketPhi;
 
-	float3 worldPosition = make_float3(tex1Dfetch(SampleWorldPositionsTexture, targetTexel));
-	float3 worldNormal = make_float3(tex1Dfetch(SampleWorldNormalsTexture, targetTexel));
-	float texelRadius = tex1Dfetch(TexelRadiusTexture, targetTexel);
+	float3 worldPosition = make_float3(tex1Dfetch<float4>(SampleWorldPositionsTexture, targetTexel));
+	float3 worldNormal = make_float3(tex1Dfetch<float4>(SampleWorldNormalsTexture, targetTexel));
+	float texelRadius = tex1Dfetch<float>(TexelRadiusTexture, targetTexel);
 
 	float3 tangent1, tangent2;
 
@@ -347,9 +347,9 @@ __global__ void BucketAdaptiveRayGenKernel(
 
 	int targetTexelGlobal = InHashes[Offset + targetTexel].OriginalPosition;
 
-	float3 worldPosition = make_float3(tex1Dfetch(SampleWorldPositionsTexture, targetTexelGlobal));
-	float3 worldNormal = make_float3(tex1Dfetch(SampleWorldNormalsTexture, targetTexelGlobal));
-	float texelRadius = tex1Dfetch(TexelRadiusTexture, targetTexelGlobal);
+	float3 worldPosition = make_float3(tex1Dfetch<float4>(SampleWorldPositionsTexture, targetTexelGlobal));
+	float3 worldNormal = make_float3(tex1Dfetch<float4>(SampleWorldNormalsTexture, targetTexelGlobal));
+	float texelRadius = tex1Dfetch<float>(TexelRadiusTexture, targetTexelGlobal);
 
 	float3 tangent1, tangent2;
 
@@ -452,10 +452,10 @@ __global__ void BucketShadingKernel(
 
 	targetTexel = InHashes[targetTexel].OriginalPosition;
 
-	float3 worldPosition = make_float3(tex1Dfetch(SampleWorldPositionsTexture, targetTexel));
-	bool isTwoSided = tex1Dfetch(SampleWorldPositionsTexture, targetTexel).w == 1.0f;
-	float3 worldNormal = make_float3(tex1Dfetch(SampleWorldNormalsTexture, targetTexel));
-	float texelRadius = tex1Dfetch(TexelRadiusTexture, targetTexel);
+	float3 worldPosition = make_float3(tex1Dfetch<float4>(SampleWorldPositionsTexture, targetTexel));
+	bool isTwoSided = tex1Dfetch<float4>(SampleWorldPositionsTexture, targetTexel).w == 1.0f;
+	float3 worldNormal = make_float3(tex1Dfetch<float4>(SampleWorldNormalsTexture, targetTexel));
+	float texelRadius = tex1Dfetch<float>(TexelRadiusTexture, targetTexel);
 
 	if (texelRadius == 0.0f)
 		return;
@@ -537,10 +537,10 @@ __global__ void SkylightImportanceSampleKernel(
 
 	targetTexel = InHashes[targetTexel].OriginalPosition;
 
-	float3 worldPosition = make_float3(tex1Dfetch(SampleWorldPositionsTexture, targetTexel));
-	bool isTwoSided = tex1Dfetch(SampleWorldPositionsTexture, targetTexel).w == 1.0f;
-	float3 worldNormal = make_float3(tex1Dfetch(SampleWorldNormalsTexture, targetTexel));
-	float texelRadius = tex1Dfetch(TexelRadiusTexture, targetTexel);
+	float3 worldPosition = make_float3(tex1Dfetch<float4>(SampleWorldPositionsTexture, targetTexel));
+	bool isTwoSided = tex1Dfetch<float4>(SampleWorldPositionsTexture, targetTexel).w == 1.0f;
+	float3 worldNormal = make_float3(tex1Dfetch<float4>(SampleWorldNormalsTexture, targetTexel));
+	float texelRadius = tex1Dfetch<float>(TexelRadiusTexture, targetTexel);
 
 	if (texelRadius == 0.0f)
 		return;
@@ -567,7 +567,7 @@ __global__ void SkylightImportanceSampleKernel(
 
 	if (threadId < 256)
 	{
-		const int sampleDirection = tex1Dfetch(SkyLightUpperHemisphereImportantDirectionsTexture, threadId / 16);
+		const int sampleDirection = tex1Dfetch<int>(SkyLightUpperHemisphereImportantDirectionsTexture, threadId / 16);
 		const int sampleTheta = sampleDirection / SkyLightCubemapNumPhiSteps;
 		const int samplePhi = sampleDirection % SkyLightCubemapNumPhiSteps;
 		const int subsampleTheta = (threadId % 16) / 4;
@@ -595,14 +595,14 @@ __global__ void SkylightImportanceSampleKernel(
 			rtTrace(OutHitInfo, make_float4(RayOrigin, 0), make_float4(RayInWorldSpace, 1e20), true);
 			if (OutHitInfo.TriangleIndex == -1)
 			{
-				skyLightNEERadiance = make_float3(tex1Dfetch(SkyLightUpperHemisphereImportantColorTexture, threadId / 16)) / PDF / 16;
+				skyLightNEERadiance = make_float3(tex1Dfetch<float4>(SkyLightUpperHemisphereImportantColorTexture, threadId / 16)) / PDF / 16;
 				LightSample.PointLightWorldSpace(skyLightNEERadiance, RayInLocalSpace, RayInWorldSpace);
 			}
 		}
 	}
 	else if (threadId >= 256 && threadId < 512)
 	{
-		int sampleIndex = tex1Dfetch(SkyLightLowerHemisphereImportantDirectionsTexture, threadId / 16 - 16);
+		int sampleIndex = tex1Dfetch<int>(SkyLightLowerHemisphereImportantDirectionsTexture, threadId / 16 - 16);
 		const int sampleTheta = sampleIndex / SkyLightCubemapNumPhiSteps;
 		const int samplePhi = sampleIndex % SkyLightCubemapNumPhiSteps;
 		const int subsampleTheta = (threadId % 16) / 4;
@@ -631,7 +631,7 @@ __global__ void SkylightImportanceSampleKernel(
 			rtTrace(OutHitInfo, make_float4(RayOrigin, 0), make_float4(RayInWorldSpace, 1e20), true);
 			if (OutHitInfo.TriangleIndex == -1)
 			{
-				skyLightNEERadiance = make_float3(tex1Dfetch(SkyLightLowerHemisphereImportantColorTexture, threadId / 16 - 16)) / PDF / 16;
+				skyLightNEERadiance = make_float3(tex1Dfetch<float4>(SkyLightLowerHemisphereImportantColorTexture, threadId / 16 - 16)) / PDF / 16;
 				LightSample.PointLightWorldSpace(skyLightNEERadiance, RayInLocalSpace, RayInWorldSpace);
 			}
 		}

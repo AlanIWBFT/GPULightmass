@@ -44,8 +44,8 @@ __global__ void ComputeAABB()
 	if (TargetTexelLocation >= BindedSizeX * BindedSizeY)
 		return;
 
-	float3 WorldPosition = make_float3(tex1Dfetch(SampleWorldPositionsTexture, TargetTexelLocation));
-	float TexelRadius = tex1Dfetch(TexelRadiusTexture, TargetTexelLocation);
+	float3 WorldPosition = make_float3(tex1Dfetch<float4>(SampleWorldPositionsTexture, TargetTexelLocation));
+	float TexelRadius = tex1Dfetch<float>(TexelRadiusTexture, TargetTexelLocation);
 
 	if (TexelRadius == 0.0f)
 		return;
@@ -96,9 +96,9 @@ __global__ void ComputeMortonHash(
 	if (TargetTexelLocation >= BindedSizeX * BindedSizeY)
 		return;
 
-	float3 WorldPosition = make_float3(tex1Dfetch(SampleWorldPositionsTexture, TargetTexelLocation));
-	float3 WorldNormal = make_float3(tex1Dfetch(SampleWorldNormalsTexture, TargetTexelLocation));
-	float TexelRadius = tex1Dfetch(TexelRadiusTexture, TargetTexelLocation);
+	float3 WorldPosition = make_float3(tex1Dfetch<float4>(SampleWorldPositionsTexture, TargetTexelLocation));
+	float3 WorldNormal = make_float3(tex1Dfetch<float4>(SampleWorldNormalsTexture, TargetTexelLocation));
+	float TexelRadius = tex1Dfetch<float>(TexelRadiusTexture, TargetTexelLocation);
 
 	if (TexelRadius == 0.0f)
 		return;
