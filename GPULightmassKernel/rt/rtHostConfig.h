@@ -1,4 +1,4 @@
-__host__ void rtBindBVHData(
+__host__ void rtBindBVH2Data(
 	const float4* InBVHTreeNodes,
 	const float4* InTriangleWoopCoordinates,
 	const int* InMappingFromTriangleAddressToIndex,
@@ -23,19 +23,34 @@ __host__ void rtBindBVHData(
 	resDesc.res.linear.sizeInBytes = BVHSize * sizeof(float4);
 	cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
 	cudaCheck(cudaMemcpyToSymbol(BVHTreeNodesTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
-	cudaCheck(cudaMemcpyToSymbol(BVHTreeNodes, &InBVHTreeNodes, 1 * sizeof(float4*)));
 
 	resDesc.res.linear.devPtr = (void*)InTriangleWoopCoordinates;
 	resDesc.res.linear.sizeInBytes = TriangleWoopSize * sizeof(float4);
 	cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
 	cudaCheck(cudaMemcpyToSymbol(TriangleWoopCoordinatesTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
-	cudaCheck(cudaMemcpyToSymbol(TriangleWoopCoordinates, &InTriangleWoopCoordinates, 1 * sizeof(float4*)));
 
 	resDesc.res.linear.desc = cudaCreateChannelDesc<int>();
 	resDesc.res.linear.devPtr = (void*)InMappingFromTriangleAddressToIndex;
 	resDesc.res.linear.sizeInBytes = TriangleIndicesSize * sizeof(int);
 	cudaCheck(cudaCreateTextureObject(&TexObject, &resDesc, &texDesc, nullptr));
 	cudaCheck(cudaMemcpyToSymbol(MappingFromTriangleAddressToIndexTexture, &TexObject, 1 * sizeof(cudaTextureObject_t)));
+}
+
+__host__ void rtBindBVH8Data(
+	const float4* InBVHTreeNodes,
+	const float4* InTriangleWoopCoordinates,
+	const int* InMappingFromTriangleAddressToIndex,
+	const unsigned int BVHSize,
+	const unsigned int TriangleWoopSize,
+	const unsigned int TriangleIndicesSize)
+{
+	GPULightmass::LOG("GPU BVH video memory size: %.2fMB, triangle payload size: %.2fMB",
+		BVHSize * sizeof(float4) / 1024.0f / 1024.0f,
+		(TriangleWoopSize * sizeof(float4) + TriangleIndicesSize * sizeof(int)) / 1024.0f / 1024.0f
+	);
+
+	cudaCheck(cudaMemcpyToSymbol(BVHTreeNodes, &InBVHTreeNodes, 1 * sizeof(float4*)));
+	cudaCheck(cudaMemcpyToSymbol(TriangleWoopCoordinates, &InTriangleWoopCoordinates, 1 * sizeof(float4*)));
 	cudaCheck(cudaMemcpyToSymbol(MappingFromTriangleAddressToIndex, &InMappingFromTriangleAddressToIndex, 1 * sizeof(int*)));
 }
 
@@ -326,7 +341,7 @@ __host__ double rtLaunchFinalGather(int NumSamples)
 			dim3 blockDim(32, 2);
 			dim3 gridDim(32 * 32, 1);
 
-			rtTraceDynamicFetch << < gridDim, blockDim >> > ();
+			rtTraceCWBVHDynamicFetch <<< gridDim, blockDim >>> ();
 			cudaPostKernelLaunchCheck
 		}
 
@@ -375,7 +390,7 @@ __host__ double rtLaunchFinalGather(int NumSamples)
 			dim3 blockDim(32, 2);
 			dim3 gridDim(32 * 32, 1);
 
-			rtTraceDynamicFetch << < gridDim, blockDim >> > ();
+			rtTraceCWBVHDynamicFetch <<< gridDim, blockDim >>> ();
 			cudaPostKernelLaunchCheck
 		}
 

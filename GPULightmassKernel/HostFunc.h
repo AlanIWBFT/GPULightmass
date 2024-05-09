@@ -5,7 +5,11 @@
 #include <string>
 #include "linear_math.h"
 
-void BindBVHData(
+void BindBVH2Data(
+	std::vector<float4>& NodeData,
+	std::vector<float4>& WoopifiedTriangles,
+	std::vector<int>& TriangleIndices);
+void BindBVH8Data(
 	std::vector<float4>& NodeData,
 	std::vector<float4>& WoopifiedTriangles,
 	std::vector<int>& TriangleIndices);

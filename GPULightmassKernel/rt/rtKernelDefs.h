@@ -70,6 +70,14 @@ __constant__ int* TriangleIndexBuffer;
 __constant__ int BindedSizeX;
 __constant__ int BindedSizeY;
 
+struct HitInfo
+{
+	int TriangleIndex;
+	float HitDistance;
+	float3 TriangleNormalUnnormalized;
+	float2 TriangleUV;
+};
+
 namespace GPULightmass
 {
 struct GatheredLightSample

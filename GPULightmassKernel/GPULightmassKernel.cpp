@@ -110,26 +110,51 @@ GPULIGHTMASSKERNEL_API void ImportAggregateMesh(
 	LOG("Importing mesh: %d vertices, %d triangles", NumVertices, NumTriangles);
 
 	BVH2Node* root;
+	BVH8Node* root8;
 
 	{
 		EmbreeBVHBuilder builder(NumVertices, NumTriangles, VertexWorldPositionBuffer, TriangleIndexBuffer);
+#if 0
 		{
-			SCOPED_TIMER("Embree SBVH Construction");
-			root = builder.BuildBVH2();
+			{
+				SCOPED_TIMER("Embree SBVH Construction");
+				root = builder.BuildBVH2();
+			}
+
+			std::vector<float4> nodeData;
+			std::vector<float4> woopifiedTriangles;
+			std::vector<int> triangleIndices;
+
+			{
+				SCOPED_TIMER("Convert to CudaBVH");
+				builder.ConvertToCUDABVH2(root, TriangleMaterialIndex, nodeData, woopifiedTriangles, triangleIndices);
+			}
+
+			{
+				SCOPED_TIMER("Bind CudaBVH");
+				BindBVH2Data(nodeData, woopifiedTriangles, triangleIndices);
+			}
 		}
-
-		std::vector<float4> nodeData;
-		std::vector<float4> woopifiedTriangles;
-		std::vector<int> triangleIndices;
-
+#endif
 		{
-			SCOPED_TIMER("Convert to CudaBVH");
-			builder.ConvertToCUDABVH2(root, TriangleMaterialIndex, nodeData, woopifiedTriangles, triangleIndices);
-		}
+			{
+				SCOPED_TIMER("Embree BVH8 Construction");
+				root8 = builder.BuildBVH8();
+			}
 
-		{
-			SCOPED_TIMER("Bind CudaBVH");
-			BindBVHData(nodeData, woopifiedTriangles, triangleIndices);
+			std::vector<float4> nodeData;
+			std::vector<float4> woopifiedTriangles;
+			std::vector<int> triangleIndices;
+
+			{
+				SCOPED_TIMER("Convert to CudaBVH8");
+				builder.ConvertToCUDABVH8(root8, TriangleMaterialIndex, nodeData, woopifiedTriangles, triangleIndices);
+			}
+
+			{
+				SCOPED_TIMER("Bind CudaBVH");
+				BindBVH8Data(nodeData, woopifiedTriangles, triangleIndices);
+			}
 		}
 	}
 	

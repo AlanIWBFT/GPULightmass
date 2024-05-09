@@ -10,7 +10,7 @@
     <ProjectGuid>{E52E3B2D-8C5E-42AB-895C-68411444C966}</ProjectGuid>
     <RootNamespace>GPULightmassKernel</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-	<DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>
+    <DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -70,6 +70,7 @@ copy /Y "$(TargetDir)$(ProjectName).dll" "D:\UE5\Engine\Binaries\Win64\$(Project
     <CudaCompile>
       <AdditionalCompilerOptions>/wd4819 /wd4267 /wd4996</AdditionalCompilerOptions>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <FastMath>true</FastMath>
     </CudaCompile>
     <CustomBuildStep>
       <Command>
@@ -97,6 +98,7 @@ copy /Y "$(TargetDir)$(ProjectName).dll" "D:\UE5\Engine\Binaries\Win64\$(Project
     <ClInclude Include="linear_math.h" />
     <ClInclude Include="ProgressReport.h" />
     <ClInclude Include="Radiosity.h" />
+    <ClInclude Include="rt\CWBVHCommon.h" />
     <ClInclude Include="rt\rtDebugFunc.h" />
     <ClInclude Include="rt\rtHelperFunc.h" />
     <ClInclude Include="rt\rtHostConfig.h" />
@@ -104,6 +106,8 @@ copy /Y "$(TargetDir)$(ProjectName).dll" "D:\UE5\Engine\Binaries\Win64\$(Project
     <ClInclude Include="rt\rtRadiosity.h" />
     <ClInclude Include="rt\rtRayBufferKernel.h" />
     <ClInclude Include="rt\rtSurfelSorting.h" />
+    <ClInclude Include="rt\rtTraceCWBVHDynamicFetch.h" />
+    <ClInclude Include="rt\rtTraceCWBVHFunc.h" />
     <ClInclude Include="rt\rtTraceDynamicFetch.h" />
     <ClInclude Include="rt\rtTraceFunc.h" />
     <ClInclude Include="rt\rtVolumetric.h" />

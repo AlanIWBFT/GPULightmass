@@ -18,7 +18,15 @@ struct GatheredLightSample
 #include "HostFunc.h"
 #include "rt/rtDebugFunc.h"
 
-__host__ void rtBindBVHData(
+__host__ void rtBindBVH2Data(
+	const float4* InBVHTreeNodes,
+	const float4* InTriangleWoopCoordinates,
+	const int* InMappingFromTriangleAddressToIndex,
+	const unsigned int BVHSize,
+	const unsigned int TriangleWoopSize,
+	const unsigned int TriangleIndicesSize);
+
+__host__ void rtBindBVH8Data(
 	const float4* InBVHTreeNodes,
 	const float4* InTriangleWoopCoordinates,
 	const int* InMappingFromTriangleAddressToIndex,
@@ -60,7 +68,7 @@ float rtTimedLaunchRadiosity(int NumBounces, int NumSamplesFirstPass);
 
 void cudaGenerateSignedDistanceFieldVolumeData(Vec3f BoundingBoxMin, Vec3f BoundingBoxMax, Vec3i VolumeDimension, float* OutBuffer, int ZSliceIndex);
 
-void BindBVHData(
+void BindBVH2Data(
 	std::vector<float4>& NodeData,
 	std::vector<float4>& WoopifiedTriangles,
 	std::vector<int>& TriangleIndices)
@@ -78,7 +86,28 @@ void BindBVHData(
 	cudaCheck(cudaMalloc((void**)&cudaMappingFromTriangleAddressToIndex, TriangleIndices.size() * sizeof(int)));
 	cudaCheck(cudaMemcpy(cudaMappingFromTriangleAddressToIndex, TriangleIndices.data(), TriangleIndices.size() * sizeof(int), cudaMemcpyHostToDevice));
 
-	rtBindBVHData(cudaBVHNodes, cudaTriangleWoopCoordinates, cudaMappingFromTriangleAddressToIndex, NodeData.size(), WoopifiedTriangles.size(), TriangleIndices.size());
+	rtBindBVH2Data(cudaBVHNodes, cudaTriangleWoopCoordinates, cudaMappingFromTriangleAddressToIndex, NodeData.size(), WoopifiedTriangles.size(), TriangleIndices.size());
+}
+
+void BindBVH8Data(
+	std::vector<float4>& NodeData,
+	std::vector<float4>& WoopifiedTriangles,
+	std::vector<int>& TriangleIndices)
+{
+	float4* cudaBVHNodes = NULL;
+	float4* cudaTriangleWoopCoordinates = NULL;
+	int* cudaMappingFromTriangleAddressToIndex = NULL;
+
+	cudaCheck(cudaMalloc((void**)&cudaBVHNodes, NodeData.size() * sizeof(float4)));
+	cudaCheck(cudaMemcpy(cudaBVHNodes, NodeData.data(), NodeData.size() * sizeof(float4), cudaMemcpyHostToDevice));
+
+	cudaCheck(cudaMalloc((void**)&cudaTriangleWoopCoordinates, WoopifiedTriangles.size() * sizeof(float4)));
+	cudaCheck(cudaMemcpy(cudaTriangleWoopCoordinates, WoopifiedTriangles.data(), WoopifiedTriangles.size() * sizeof(float4), cudaMemcpyHostToDevice));
+
+	cudaCheck(cudaMalloc((void**)&cudaMappingFromTriangleAddressToIndex, TriangleIndices.size() * sizeof(int)));
+	cudaCheck(cudaMemcpy(cudaMappingFromTriangleAddressToIndex, TriangleIndices.data(), TriangleIndices.size() * sizeof(int), cudaMemcpyHostToDevice));
+
+	rtBindBVH8Data(cudaBVHNodes, cudaTriangleWoopCoordinates, cudaMappingFromTriangleAddressToIndex, NodeData.size(), WoopifiedTriangles.size(), TriangleIndices.size());
 }
 
 void BindParameterizationData(
@@ -202,7 +231,7 @@ bool BindBVHDataFromFile(std::string fileName)
 		cudaCheck(cudaMalloc((void**)&cudaMappingFromTriangleAddressToIndex, gpuTriIndicesSize * sizeof(int)));
 		cudaCheck(cudaMemcpy(cudaMappingFromTriangleAddressToIndex, gpuTriIndices.get(), gpuTriIndicesSize * sizeof(int), cudaMemcpyHostToDevice));
 
-		rtBindBVHData(cudaBVHNodes, cudaTriangleWoopCoordinates, cudaMappingFromTriangleAddressToIndex, gpuNodesSize, gpuTriWoopSize, gpuTriIndicesSize);
+		rtBindBVH2Data(cudaBVHNodes, cudaTriangleWoopCoordinates, cudaMappingFromTriangleAddressToIndex, gpuNodesSize, gpuTriWoopSize, gpuTriIndicesSize);
 
 		return true;
 	}

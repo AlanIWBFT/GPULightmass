@@ -36,9 +36,16 @@ public:
 	~EmbreeBVHBuilder();
 
 	BVH2Node* BuildBVH2();
+	BVH8Node* BuildBVH8();
 
 	void ConvertToCUDABVH2(
-		const BVH2Node * root,
+		BVH2Node * root,
+		const int TriangleMaterialIndex[],
+		std::vector<float4>& OutNodeData,
+		std::vector<float4>& OutWoopifiedTriangles,
+		std::vector<int>& OutTriangleIndices);
+	void ConvertToCUDABVH8(
+		BVH8Node* root,
 		const int TriangleMaterialIndex[],
 		std::vector<float4>& OutNodeData,
 		std::vector<float4>& OutWoopifiedTriangles,

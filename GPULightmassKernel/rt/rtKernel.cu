@@ -2,7 +2,9 @@
 #include "rtKernelDefs.h"
 #include "rtHelperFunc.h"
 #include "rtDebugFunc.h"
+#include "CWBVHCommon.h"
 #include "rtTraceFunc.h"
+#include "rtTraceCWBVHFunc.h"
 #include "rtWarpAggregation.h"
 #include <float.h>
 

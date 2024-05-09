@@ -27,15 +27,7 @@
 
 #pragma once
 
-struct HitInfo
-{
-	int TriangleIndex;
-	float HitDistance;
-	float3 TriangleNormalUnnormalized;
-	float2 TriangleUV;		// Not implemented
-};
-
-__device__ void rtTrace(
+__device__ void rtTraceBVH2(
 	HitInfo& OutHitInfo,
 	const float4 RayOrigin,
 	const float4 RayDirection,

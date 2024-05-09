@@ -35,6 +35,7 @@ __device__ int*		TexelToRayIDMap;
 #define SURFEL_EXPAND_FACTOR 1.5f
 
 #include "rtTraceDynamicFetch.h"
+#include "rtTraceCWBVHDynamicFetch.h"
 #include "rtSurfelSorting.h"
 
 __global__ void BucketRayGenKernel(
