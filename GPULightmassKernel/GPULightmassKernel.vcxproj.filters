@@ -55,6 +55,9 @@
       <Filter>BVH</Filter>
     </ClInclude>
     <ClInclude Include="sh_warpreduction.h" />
+    <ClInclude Include="rt\CWBVHCommon.h" />
+    <ClInclude Include="rt\rtTraceCWBVHDynamicFetch.h" />
+    <ClInclude Include="rt\rtTraceCWBVHFunc.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="BVH">
